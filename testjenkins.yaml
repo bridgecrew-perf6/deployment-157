@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: testjenkins
+  namespace: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      project: java
+      app: testjenkins
+  template:
+    metadata:
+      labels:
+        project: java
+        app: testjenkins
+    spec:
+      containers:
+      - name: testjenkins
+        image: harbor.cloud-link.com/test/testjenkins:202203251003-3
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          protocol: TCP
+          name: web
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 5
+          periodSeconds: 5
+        readinessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 20
+          timeoutSeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            memory: 1024Mi
+          requests:
+            memory: 512Mi
+        env:
+        - name: SCALE
+          value: dev
+        - name: APPNAME
+          value: testjenkins
+        - name: JAVA_ENV
+          value: -Xms512M -Xmx512M -XX:+UseStringDeduplication -XX:+PrintGC -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+PrintHeapAtGC -Xloggc:/agent/gc.log -XX:+UseG1GC -XX:ParallelGCThreads=1 -XX:ConcGCThreads=1 -Dserver.port=80
+        - name: COMMAND
+          value: --spring.profiles.active=dev
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: testjenkins
+  namespace: govent-dev
+  labels:
+    project: java
+    app: testjenkins
+spec:
+  selector:
+    project: java
+    app: testjenkins
+  ports:
+  - name: web
+    port: 80
+    targetPort: 80
+  type: ClusterIP
