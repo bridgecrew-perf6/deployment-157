@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: testjenkins
-        image: harbor.cloud-link.com/test/testjenkins:202203251003-3
+        image: harbor.cloud-link.com/test/testjenkins:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 80
